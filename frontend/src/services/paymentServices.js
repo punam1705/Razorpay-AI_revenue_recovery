@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = import.meta.env.API_URL;
 
 export const getPayments = async () => {
   const response = await axios.get(
