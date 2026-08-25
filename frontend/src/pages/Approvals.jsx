@@ -29,6 +29,7 @@ const [error, setError] = useState("");
 const [selectedApproval, setSelectedApproval] =
   useState(null);
 
+  const [processing, setProcessing] = useState(false);
   // const approveAction = (id) => {
   //   setApprovals((current) =>
   //     current.map((item) =>
@@ -47,40 +48,49 @@ const [selectedApproval, setSelectedApproval] =
   //       item.id === id
   //         ? { ...item, status: "Rejected" }
   //         : item
-  //     )
-  //   );
+ 
+  
 
-  //   setSelectedApproval(null);
-  // };
 
-//   const handleApproval = async (
+
+// const handleApproval = async (
 //   recoveryId,
 //   status
 // ) => {
 //   try {
+//     setError("");
+
 //     const updatedRecovery =
 //       await updateRecoveryStatus(
 //         recoveryId,
 //         status
 //       );
 
+//     if (status === "APPROVED") {
+//       await executeRecovery(
+//         recoveryId
+//       );
+//     }
+
 //     setApprovals((current) =>
 //       current.filter(
 //         (approval) =>
 //           approval.recovery_id !==
-//           updatedRecovery.recovery_id
+//           recoveryId
 //       )
 //     );
 
 //     setSelectedApproval(null);
+
 //   } catch (error) {
 //     console.error(
-//       "Failed to update approval:",
+//       "Failed to process recovery:",
 //       error
 //     );
 
 //     setError(
-//       "Unable to update approval status."
+//       error.response?.data?.detail ||
+//         "Unable to process recovery action."
 //     );
 //   }
 // };
@@ -90,29 +100,16 @@ const handleApproval = async (
   status
 ) => {
   try {
-    setError("");
+    setProcessing(true);
 
-    const updatedRecovery =
-      await updateRecoveryStatus(
-        recoveryId,
-        status
-      );
-
-    if (status === "APPROVED") {
-      await executeRecovery(
-        recoveryId
-      );
-    }
-
-    setApprovals((current) =>
-      current.filter(
-        (approval) =>
-          approval.recovery_id !==
-          recoveryId
-      )
+    await updateRecoveryStatus(
+      recoveryId,
+      status
     );
 
     setSelectedApproval(null);
+
+    // await loadApprovals();
 
   } catch (error) {
     console.error(
@@ -120,10 +117,12 @@ const handleApproval = async (
       error
     );
 
-    setError(
+    alert(
       error.response?.data?.detail ||
-        "Unable to process recovery action."
+      "Failed to process recovery"
     );
+  } finally {
+    setProcessing(false);
   }
 };
 
@@ -135,12 +134,11 @@ const handleApproval = async (
     return "bg-yellow-100 text-yellow-700";
   };
 
-  // const pendingCount = approvals.filter(
-  //   (item) => item.status === "Pending"
-  // ).length;
+
+  
 
   const pendingCount = approvals.length;
-
+const [recoveries, setRecoveries] = useState([]);
   // const approvedCount = approvals.filter(
   //   (item) => item.status === "Approved"
   // ).length;
@@ -148,9 +146,15 @@ const handleApproval = async (
   // const rejectedCount = approvals.filter(
   //   (item) => item.status === "Rejected"
   // ).length;
-const approvedCount = 0;
-const rejectedCount = 0;
+// const approvedCount = 0;
+// const rejectedCount = 0;
+const approvedCount = recoveries.filter(
+  (item) => item.status === "APPROVED"
+).length;
 
+const rejectedCount = recoveries.filter(
+  (item) => item.status === "REJECTED"
+).length;
   useEffect(() => {
   const loadApprovals = async () => {
     try {
@@ -165,6 +169,8 @@ const rejectedCount = 0;
         : data
         ? [data]
         : [];
+
+          setRecoveries(recoveries);
 
       const approvalRequests = recoveries.filter(
         (recovery) =>
@@ -268,201 +274,7 @@ const rejectedCount = 0;
 
       </div>
 
-      {/* Approval List */}
-      {/* <div className="space-y-4">
-
-        {approvals.map((selectedApproval) => (
-
-          <div
-            key={selectedApproval.recovery_id}
-            className="bg-white border border-slate-200 rounded-xl p-6"
-          >
-
-            
-            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
-
-              <div className="flex items-start gap-4">
-
-                <div className="w-11 h-11 rounded-lg bg-slate-900 text-white flex items-center justify-center shrink-0">
-                  <ShieldCheck size={21} />
-                </div>
-
-                <div>
-
-                  <div className="flex items-center gap-3">
-
-                    <h2 className="font-semibold text-slate-900">
-                      {selectedApproval.strategy}
-                    </h2>
-
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${getRiskStyle(
-                        selectedApproval.risk
-                      )}`}
-                    >
-                      {selectedApproval.risk} Risk
-                    </span>
-
-                  </div>
-
-                  <p className="text-sm text-slate-500 mt-1">
-                    {selectedApproval.recovery_id} · {selectedApproval.payment_id}
-                  </p>
-
-                </div>
-
-              </div>
-
-              <span
-                className={`px-3 py-1 rounded-full text-xs font-medium w-fit ${
-                  selectedApproval.status === "Pending"
-                    ? "bg-orange-100 text-orange-700"
-                    : selectedApproval.status === "Approved"
-                    ? "bg-green-100 text-green-700"
-                    : "bg-red-100 text-red-700"
-                }`}
-              >
-                {selectedApproval.status}
-              </span>
-
-            </div>
-
-            
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-
-              <div className="bg-slate-50 rounded-lg p-4">
-                <p className="text-xs text-slate-500">
-                  Customer
-                </p>
-
-                <p className="font-medium mt-1">
-                  {selectedApproval.customer_id}
-                </p>
-              </div>
-
-              <div className="bg-slate-50 rounded-lg p-4">
-                <p className="text-xs text-slate-500">
-                  Payment Amount
-                </p>
-
-                <p className="font-medium mt-1">
-                  ₹{selectedApproval.amount.toLocaleString("en-IN")}
-                </p>
-              </div>
-
-              <div className="bg-slate-50 rounded-lg p-4">
-                <p className="text-xs text-slate-500">
-                  Failure Reason
-                </p>
-
-                <p className="font-medium mt-1">
-                  {selectedApproval.reason}
-                </p>
-              </div>
-
-              <div className="bg-slate-50 rounded-lg p-4">
-                <p className="text-xs text-slate-500">
-                  AI Confidence
-                </p>
-
-                <p className="font-medium mt-1">
-                  {selectedApproval.confidence}%
-                </p>
-              </div>
-
-            </div>
-
-            
-            <div className="mt-5 border border-slate-200 rounded-lg p-5">
-
-              <div className="flex items-center gap-2">
-                <Bot size={18} />
-                <h3 className="font-semibold">
-                  AI Recommendation
-                </h3>
-              </div>
-
-
-              <div className="flex flex-wrap gap-3 mt-4">
-
-                <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
-                  Channel: {selectedApproval.channel}
-                </span>
-
-                <span className="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">
-                  Guardrails Passed
-                </span>
-
-              </div>
-
-            </div>
-
-            
-            {selectedApproval.status === "Pending" && (
-
-              <div className="flex justify-end gap-3 mt-5">
-
-                <button
-               
-               onClick={() =>
-  handleApproval(
-     selectedApproval.recovery_id,
-    "REJECTED"
-  )
-}
-                  className="flex items-center gap-2 px-5 py-2.5 border border-red-200 text-red-700 rounded-lg text-sm font-medium hover:bg-red-50"
-                >
-                  <XCircle size={17} />
-                  Reject
-                </button>
-
-                <button
-                  onClick={() => setSelectedApproval(selectedApproval)}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800"
-                >
-                  <CheckCircle2 size={17} />
-                  Review & Approve
-                </button>
-
-              </div>
-
-            )}
-
-          </div>
-
-        ))}
-
-        {loading ? (
-  <div className="bg-white border border-slate-200 rounded-xl p-12 text-center">
-    <p className="text-slate-500">
-      Loading approval requests...
-    </p>
-  </div>
-) : error ? (
-  <div className="bg-white border border-red-200 rounded-xl p-12 text-center">
-    <p className="text-red-500">
-      {error}
-    </p>
-  </div>
-) :
-        approvals.length === 0 && (
-          <div className="bg-white border border-slate-200 rounded-xl p-12 text-center">
-            <ShieldCheck
-              size={40}
-              className="mx-auto text-slate-400"
-            />
-
-            <h3 className="font-semibold mt-4">
-              No approval requests
-            </h3>
-
-            <p className="text-sm text-slate-500 mt-1">
-              All AI recovery actions have been reviewed.
-            </p>
-          </div>
-        )}
-
-      </div> */}
+    
 {/* Approval List */}
 <div className="space-y-4">
 

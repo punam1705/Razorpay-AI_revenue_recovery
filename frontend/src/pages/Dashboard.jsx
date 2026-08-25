@@ -15,39 +15,42 @@ import StatCard from "../components/StatCard";
 import {
   getDashboardSummary,
 } from "../services/dashboardService";
+import { getPayments } from "../services/paymentServices";
 
+// import {
+//   getPayments,
+// } from "../services/paymentService";
 
-
-const payments = [
-  {
-    id: "pay_101",
-    customer: "Rahul Kumar",
-    amount: "₹2,500",
-    reason: "Bank Downtime",
-    status: "Recovery Sent",
-  },
-  {
-    id: "pay_102",
-    customer: "Aman Singh",
-    amount: "₹5,000",
-    reason: "Checkout Abandoned",
-    status: "Pending",
-  },
-  {
-    id: "pay_103",
-    customer: "Priya Sharma",
-    amount: "₹8,000",
-    reason: "Payment Failed",
-    status: "Recovered",
-  },
-  {
-    id: "pay_104",
-    customer: "Neha Verma",
-    amount: "₹3,200",
-    reason: "Insufficient Funds",
-    status: "Pending",
-  },
-];
+// const payments = [
+//   {
+//     id: "pay_101",
+//     customer: "Rahul Kumar",
+//     amount: "₹2,500",
+//     reason: "Bank Downtime",
+//     status: "Recovery Sent",
+//   },
+//   {
+//     id: "pay_102",
+//     customer: "Aman Singh",
+//     amount: "₹5,000",
+//     reason: "Checkout Abandoned",
+//     status: "Pending",
+//   },
+//   {
+//     id: "pay_103",
+//     customer: "Priya Sharma",
+//     amount: "₹8,000",
+//     reason: "Payment Failed",
+//     status: "Recovered",
+//   },
+//   {
+//     id: "pay_104",
+//     customer: "Neha Verma",
+//     amount: "₹3,200",
+//     reason: "Insufficient Funds",
+//     status: "Pending",
+//   },
+// ];
 
 function Dashboard() {
   const [summary, setSummary] = useState({
@@ -57,16 +60,53 @@ function Dashboard() {
   recovered_count: 0,
   pending_approvals: 0,
 });
-
+const [payments, setPayments] = useState([]);
 const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+
+//   useEffect(() => {
+//   const loadDashboard = async () => {
+//     try {
+//       const data =
+//         await getDashboardSummary();
+
+//       setSummary(data);
+//     } catch (error) {
+//       console.error(
+//         "Failed to load dashboard:",
+//         error
+//       );
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   loadDashboard();
+// }, []);
+
+useEffect(() => {
   const loadDashboard = async () => {
     try {
-      const data =
-        await getDashboardSummary();
+      setLoading(true);
 
-      setSummary(data);
+      const [
+        summaryData,
+        paymentsData,
+      ] = await Promise.all([
+        getDashboardSummary(),
+        getPayments(),
+      ]);
+
+      setSummary(summaryData);
+
+      const failedPayments =
+        paymentsData.filter(
+          (payment) =>
+            payment.status === "FAILED"
+        );
+
+      setPayments(failedPayments);
+
     } catch (error) {
       console.error(
         "Failed to load dashboard:",
@@ -79,6 +119,17 @@ const [loading, setLoading] = useState(true);
 
   loadDashboard();
 }, []);
+
+
+const recoveryRate =
+  summary.failed_payments > 0
+    ? (
+        (summary.recovered_count /
+          summary.failed_payments) *
+        100
+      ).toFixed(1)
+    : 0;
+
 
   return (
     <div className="p-8 space-y-8">
@@ -97,34 +148,79 @@ const [loading, setLoading] = useState(true);
       {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
 
-        <StatCard
+        {/* <StatCard
           title="Failed Payments"
           value={summary.failed_payments}
           subtitle="24 transactions"
           icon={CreditCard}
-        />
+        /> */}
+<StatCard
+  title="Failed Payments"
+  value={
+    loading
+      ? "..."
+      : summary.failed_payments
+  }
+  subtitle="Currently failed transactions"
+  icon={CreditCard}
+/>
 
-        <StatCard
+        {/* <StatCard
           title="Potential Recovery"
           // value={summary.total_recovered.toLocaleString("en-IN")}
           value={summary.total_recovered}
           subtitle="40% of failed revenue"
           icon={IndianRupee}
-        />
+        /> */}
 
-        <StatCard
+<StatCard
+  title="Recovered Revenue"
+  value={
+    loading
+      ? "..."
+      : `₹${Number(
+          summary.total_recovered
+        ).toLocaleString("en-IN")}`
+  }
+  subtitle="Successfully recovered"
+  icon={IndianRupee}
+/>
+
+        {/* <StatCard
           title="Recovered Revenue"
           value={summary.recovered_count}
           subtitle="+18.4% this month"
           icon={TrendingUp}
-        />
+        /> */}
 
         <StatCard
+  title="Recovered Payments"
+  value={
+    loading
+      ? "..."
+      : summary.recovered_count
+  }
+  subtitle="Successful recoveries"
+  icon={TrendingUp}
+/>
+
+
+        {/* <StatCard
           title="Recovery Rate"
           value="52.7%"
           subtitle="12 successful recoveries"
           icon={RotateCcw}
-        />
+        /> */}
+<StatCard
+  title="Recovery Rate"
+  value={
+    loading
+      ? "..."
+      : `${recoveryRate}%`
+  }
+  subtitle={`${summary.recovered_count} successful recoveries`}
+  icon={RotateCcw}
+/>
 
       </div>
 
@@ -232,15 +328,15 @@ const [loading, setLoading] = useState(true);
 
               {payments.map((payment) => (
                 <tr
-                  key={payment.id}
+                  key={payment.payment_id}
                   className="border-t border-slate-100 hover:bg-slate-50"
                 >
                   <td className="px-6 py-4 font-medium text-slate-800">
-                    {payment.id}
+                    {payment.payment_id}
                   </td>
 
                   <td className="px-6 py-4">
-                    {payment.customer}
+                    {payment.customer_id}
                   </td>
 
                   <td className="px-6 py-4 font-medium">
@@ -248,12 +344,12 @@ const [loading, setLoading] = useState(true);
                   </td>
 
                   <td className="px-6 py-4 text-slate-500">
-                    {payment.reason}
+                    {payment.failure_reason}
                   </td>
 
                   <td className="px-6 py-4">
 
-                    <span
+                    {/* <span
                       className={`px-3 py-1 rounded-full text-xs font-medium ${
                         payment.status === "Recovered"
                           ? "bg-green-100 text-green-700"
@@ -263,7 +359,16 @@ const [loading, setLoading] = useState(true);
                       }`}
                     >
                       {payment.status}
-                    </span>
+                    </span> */}
+                    <span
+  className={`px-3 py-1 rounded-full text-xs font-medium ${
+    payment.status === "SUCCESS"
+      ? "bg-green-100 text-green-700"
+      : "bg-yellow-100 text-yellow-700"
+  }`}
+>
+  {payment.status}
+</span>
 
                   </td>
                 </tr>
