@@ -117,6 +117,7 @@ Return a structured decision.
 
 from langgraph.graph import END, StateGraph
 
+
 def apply_guardrails(
     state: RecoveryAIState,
 ) -> RecoveryAIState:
@@ -136,46 +137,40 @@ def apply_guardrails(
         0,
     )
 
-    requires_approval = state.get(
-        "requires_approval",
-        False,
-    )
+    # Start with AUTO_EXECUTE.
+    # Guardrails will override this if required.
+    requires_approval = False
 
     # Rule 1:
-    # Low confidence requires human review
+    # Low confidence requires human approval
     if confidence < 0.80:
         requires_approval = True
 
     # Rule 2:
-    # High risk requires human review
+    # High risk requires human approval
     if risk == "HIGH":
         requires_approval = True
 
     # Rule 3:
-    # High-value transactions require approval
+    # High-value transactions require human approval
     if amount >= 50000:
         requires_approval = True
 
     # Rule 4:
-    # Never allow invalid confidence
+    # Invalid confidence requires human approval
     if confidence < 0 or confidence > 1:
         requires_approval = True
+
+    if requires_approval:
+        execution_mode = "HUMAN_APPROVAL"
+    else:
+        execution_mode = "AUTO_EXECUTE"
 
     return {
         **state,
         "requires_approval": requires_approval,
+        "execution_mode": execution_mode,
     }
-
-
-# def execute_action(
-#     state: RecoveryAIState,
-# ) -> RecoveryAIState:
-
-#     return {
-#         **state,
-#         "execution_mode": "AUTO_EXECUTE",
-#         "recovery_status": "AUTO_EXECUTED",
-#     }
 
 def execute_action(
     state: RecoveryAIState,

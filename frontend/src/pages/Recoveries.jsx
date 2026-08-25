@@ -43,7 +43,7 @@ const [error, setError] = useState("");
 
       return matchesSearch && matchesStatus;
     });
-  }, [search, statusFilter]);
+  }, [recoveries, search, statusFilter]);
 
   
   const getStatusStyle = (status) => {

@@ -141,20 +141,30 @@ const handleApproval = async (
 
   const pendingCount = approvals.length;
 
-  const approvedCount = approvals.filter(
-    (item) => item.status === "Approved"
-  ).length;
+  // const approvedCount = approvals.filter(
+  //   (item) => item.status === "Approved"
+  // ).length;
 
-  const rejectedCount = approvals.filter(
-    (item) => item.status === "Rejected"
-  ).length;
+  // const rejectedCount = approvals.filter(
+  //   (item) => item.status === "Rejected"
+  // ).length;
+const approvedCount = 0;
+const rejectedCount = 0;
 
   useEffect(() => {
   const loadApprovals = async () => {
     try {
       setLoading(true);
 
-      const recoveries = await getRecoveries();
+      // const recoveries = await getRecoveries();
+
+      const data = await getRecoveries();
+
+      const recoveries = Array.isArray(data)
+        ? data
+        : data
+        ? [data]
+        : [];
 
       const approvalRequests = recoveries.filter(
         (recovery) =>
@@ -717,7 +727,7 @@ const handleApproval = async (
                     </p>
 
                     <p className="font-medium mt-1">
-                      {selectedApproval.customer}
+                      {selectedApproval.customer_id}
                     </p>
                   </div>
 
@@ -740,7 +750,7 @@ const handleApproval = async (
                     </p>
 
                     <p className="font-medium mt-1">
-                      {selectedApproval.paymentId}
+                      {selectedApproval.payment_id}
                     </p>
                   </div>
 
@@ -750,7 +760,7 @@ const handleApproval = async (
                     </p>
 
                     <p className="font-medium mt-1">
-                      {selectedApproval.reason}
+                      {selectedApproval.strategy}
                     </p>
                   </div>
 
@@ -769,7 +779,7 @@ const handleApproval = async (
                 </div>
 
                 <p className="text-lg font-bold mt-3">
-                  {selectedApproval.recommendation}
+                  {selectedApproval.strategy}
                 </p>
 {/* 
                 <p className="text-sm text-slate-600 mt-2 leading-6">
@@ -837,7 +847,11 @@ const handleApproval = async (
 
                 <button
                   onClick={() =>
-                    rejectAction(selectedApproval.id)
+                    handleApproval(
+      selectedApproval.recovery_id,
+      "REJECTED"
+    )
+                    // rejectAction(selectedApproval.id)
                   }
                   className="flex-1 flex items-center justify-center gap-2 py-3 border border-red-200 text-red-700 rounded-lg text-sm font-medium hover:bg-red-50"
                 >

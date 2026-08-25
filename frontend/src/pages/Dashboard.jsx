@@ -106,7 +106,8 @@ const [loading, setLoading] = useState(true);
 
         <StatCard
           title="Potential Recovery"
-          value={summary.total_recovered.toLocaleString("en-IN")}
+          // value={summary.total_recovered.toLocaleString("en-IN")}
+          value={summary.total_recovered}
           subtitle="40% of failed revenue"
           icon={IndianRupee}
         />
@@ -148,7 +149,7 @@ const [loading, setLoading] = useState(true);
           </select>
         </div>
 
-        <div className="h-56 flex items-end gap-6 px-5">
+        {/* <div className="h-56 flex items-end gap-6 px-5">
 
           {[35, 55, 40, 70, 50, 80, 65].map((height, index) => (
             <div
@@ -166,7 +167,24 @@ const [loading, setLoading] = useState(true);
             </div>
           ))}
 
-        </div>
+        </div> */}
+        <div className="h-56 flex items-end gap-6 px-5">
+  {[35, 55, 40, 70, 50, 80, 65].map((height, index) => (
+    <div
+      key={index}
+      className="flex-1 h-full flex flex-col justify-end items-center gap-2"
+    >
+      <div
+        className="w-full bg-slate-800 rounded-t-lg"
+        style={{ height: `${height}%` }}
+      />
+
+      <span className="text-xs text-slate-400">
+        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][index]}
+      </span>
+    </div>
+  ))}
+</div>
       </div>
 
       {/* Recent payments */}
@@ -214,15 +232,15 @@ const [loading, setLoading] = useState(true);
 
               {payments.map((payment) => (
                 <tr
-                  key={payment.payment_id}
+                  key={payment.id}
                   className="border-t border-slate-100 hover:bg-slate-50"
                 >
                   <td className="px-6 py-4 font-medium text-slate-800">
-                    {payment.payment_id}
+                    {payment.id}
                   </td>
 
                   <td className="px-6 py-4">
-                    {payment.customer_id}
+                    {payment.customer}
                   </td>
 
                   <td className="px-6 py-4 font-medium">
@@ -230,7 +248,7 @@ const [loading, setLoading] = useState(true);
                   </td>
 
                   <td className="px-6 py-4 text-slate-500">
-                    {payment.failure_reason}
+                    {payment.reason}
                   </td>
 
                   <td className="px-6 py-4">

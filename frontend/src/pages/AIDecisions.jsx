@@ -52,8 +52,15 @@ const [error, setError] = useState("");
       setLoading(true);
 
       const data = await getAIDecisions();
-
-      setDecisions(data);
+ const list = Array.isArray(data)
+      ? data
+      : Array.isArray(data?.decisions)
+      ? data.decisions
+      : Array.isArray(data?.data)
+      ? data.data
+      : [];
+      setDecisions(list);
+      // setDecisions(data);
     } catch (error) {
       console.error(
         "Failed to load AI decisions:",
@@ -70,6 +77,33 @@ const [error, setError] = useState("");
 
   loadDecisions();
 }, []);
+
+
+// useEffect(() => {
+//   const loadDecisions = async () => {
+//     try {
+//       setLoading(true);
+
+//       const data = await getAIDecisions();
+
+
+//       setDecisions(Array.isArray(data) ? data : [data]);
+//     } catch (error) {
+//       console.error(
+//         "Failed to load AI decisions:",
+//         error
+//       );
+
+//       setError(
+//         "Unable to load AI decisions from server."
+//       );
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   loadDecisions();
+// }, []);
 
   return (
     <div className="p-8 space-y-6">

@@ -70,7 +70,7 @@ function Payments() {
 
       return matchesSearch && matchesReason;
     });
-  }, [search, reasonFilter]);
+  }, [payments, search, reasonFilter]);
 
   useEffect(() => {
     const loadPayments = async () => {
