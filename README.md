@@ -13,6 +13,9 @@ appropriate recovery action is time-consuming and difficult to scale.
 This project automates the decision-making process using AI while keeping
 financial actions under backend-controlled guardrails.
 
+Backend and Database is build in render so it might will slow. Be patient Go to /docs and create data for database Backend :  https://razorpay-ai-revenue-recovery.onrender.com  
+
+
 ## Solution
 
 The system analyzes failed payments using Gemini and LangGraph.
